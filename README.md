@@ -65,7 +65,7 @@ Run the watcher in the background to automatically convert any newly written or 
 node packages/watcher/dist/index.js watch \
   --vault-root /path/to/your/obsidian/vault \
   --apply \
-  --debounce-ms 2000
+  --debounce-ms 3000
 ```
 > **Note**: `--apply` is required for actual file writes. Without `--apply`, the watcher operates in preview-only mode.
 
@@ -173,7 +173,7 @@ Example `config.json`:
   },
   "watcher": {
     "enabled": true,
-    "debounceMs": 2000,
+    "debounceMs": 3000,
     "apply": true
   }
 }

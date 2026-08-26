@@ -82,7 +82,7 @@ docker run -d \
   --restart unless-stopped \
   -v /absolute/path/to/your/vault:/vault \
   obsidian-mermaid-mcp:latest \
-  watch --apply --debounce-ms 2000
+  watch --apply --debounce-ms 3000
 ```
 
 - **View Logs / 查看运行日志**:

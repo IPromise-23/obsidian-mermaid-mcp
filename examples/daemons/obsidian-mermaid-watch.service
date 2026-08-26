@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 # Replace with output of `which node` and repository path
-ExecStart=/usr/bin/node /path/to/obsidian-mermaid-mcp/packages/watcher/dist/index.js watch --vault-root /path/to/your/obsidian/vault --apply --debounce-ms 2000
+ExecStart=/usr/bin/node /path/to/obsidian-mermaid-mcp/packages/watcher/dist/index.js watch --vault-root /path/to/your/obsidian/vault --apply --debounce-ms 3000
 WorkingDirectory=/path/to/obsidian-mermaid-mcp
 Restart=always
 RestartSec=5

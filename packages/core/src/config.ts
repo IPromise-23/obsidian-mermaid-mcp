@@ -54,8 +54,15 @@ interface RendererFileConfig {
   browserExecutablePath?: string;
 }
 
+interface WatcherFileConfig {
+  enabled?: boolean;
+  debounceMs?: number;
+  apply?: boolean;
+}
+
 interface FileConfig extends Partial<CoreConfig> {
   renderer?: RendererFileConfig;
+  watcher?: WatcherFileConfig;
 }
 
 function finiteNumber(value: unknown, fallback: number): number {
@@ -67,6 +74,7 @@ export async function loadConfig(path?: string): Promise<CoreConfig> {
   const text = await readFile(path, 'utf8');
   const parsed = JSON.parse(text) as FileConfig;
   const renderer = parsed.renderer ?? {};
+  const watcher = parsed.watcher ?? {};
   const browserExecutablePath = parsed.browserExecutablePath ?? renderer.browserExecutablePath ?? renderer.executablePath;
   return {
     ...DEFAULT_CONFIG,
@@ -85,7 +93,8 @@ export async function loadConfig(path?: string): Promise<CoreConfig> {
     renderTimeoutMs: finiteNumber(parsed.renderTimeoutMs ?? renderer.timeoutMs, DEFAULT_CONFIG.renderTimeoutMs),
     browserIdleTimeoutMs: finiteNumber(parsed.browserIdleTimeoutMs ?? renderer.browserIdleTimeoutMs, DEFAULT_CONFIG.browserIdleTimeoutMs),
     maxConcurrentRenders: finiteNumber(parsed.maxConcurrentRenders ?? renderer.maxConcurrentRenders, DEFAULT_CONFIG.maxConcurrentRenders),
-    htmlLabels: parsed.htmlLabels ?? renderer.htmlLabels ?? DEFAULT_CONFIG.htmlLabels
+    htmlLabels: parsed.htmlLabels ?? renderer.htmlLabels ?? DEFAULT_CONFIG.htmlLabels,
+    watcherDebounceMs: finiteNumber(parsed.watcherDebounceMs ?? watcher.debounceMs, DEFAULT_CONFIG.watcherDebounceMs)
   };
 }
 

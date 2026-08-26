@@ -23,7 +23,7 @@ async function main(): Promise<void> {
   if (!root) throw new Error('--vault-root, OBSIDIAN_MERMAID_VAULT_ROOT, or config.vaultRoot is required');
   const resolvedRoot = await resolveVaultRoot(root);
   const apply = has('--apply');
-  const debounceMs = Number(value('--debounce-ms') ?? 2000);
+  const debounceMs = Number(value('--debounce-ms') ?? config.watcherDebounceMs ?? 3000);
   const service = new VaultService(resolvedRoot, config);
   await service.initialize();
   const pending = new Map<string, NodeJS.Timeout>();

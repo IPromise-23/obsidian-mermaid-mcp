@@ -9,5 +9,5 @@
   "sourceStorage": "both",
   "failurePolicy": "partial",
   "renderer": { "timeoutMs": 30000, "browserIdleTimeoutMs": 300000, "maxConcurrentRenders": 1, "htmlLabels": false, "securityLevel": "strict" },
-  "watcher": { "enabled": false, "debounceMs": 2000, "apply": false }
+  "watcher": { "enabled": false, "debounceMs": 3000, "apply": false }
 }

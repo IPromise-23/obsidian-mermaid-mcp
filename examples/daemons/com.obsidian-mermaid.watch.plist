@@ -16,7 +16,7 @@
         <string>/path/to/your/obsidian/vault</string>
         <string>--apply</string>
         <string>--debounce-ms</string>
-        <string>2000</string>
+        <string>3000</string>
     </array>
     <key>WorkingDirectory</key>
     <string>/path/to/obsidian-mermaid-mcp</string>

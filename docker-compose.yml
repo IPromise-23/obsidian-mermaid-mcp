@@ -6,7 +6,7 @@ services:
     image: obsidian-mermaid-mcp:latest
     container_name: obsidian-mermaid-watcher
     restart: unless-stopped
-    command: ["watch", "--apply", "--debounce-ms", "2000"]
+    command: ["watch", "--apply", "--debounce-ms", "3000"]
     volumes:
       # Set VAULT_PATH in .env or pass as environment variable:
       # VAULT_PATH=/path/to/your/obsidian/vault docker compose up -d

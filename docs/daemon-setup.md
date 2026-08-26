@@ -103,5 +103,5 @@ powershell -ExecutionPolicy Bypass -File examples\daemons\start-watcher.ps1
 
 ## 常用调试排错
 
-1. **修改防抖时间**：默认为 2000ms（2秒）。若需要更短响应时间，可在参数中增加 `--debounce-ms 1000`。
+1. **修改防抖时间**：默认为 3000ms（3秒）。若需要更短响应时间，可在参数中增加 `--debounce-ms 1000`。
 2. **确认写入模式**：必须包含 `--apply` 参数，否则 Watcher 仅为预览模式（不会修改磁盘文件）。

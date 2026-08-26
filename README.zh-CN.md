@@ -65,7 +65,7 @@ docker build -t obsidian-mermaid-mcp:latest .
 node packages/watcher/dist/index.js watch \
   --vault-root /path/to/your/obsidian/vault \
   --apply \
-  --debounce-ms 2000
+  --debounce-ms 3000
 ```
 > **提示**：`--apply` 是执行写入的关键参数。不加 `--apply` 时 Watcher 仅为预览模式（不修改磁盘文件）。
 
@@ -173,7 +173,7 @@ flowchart LR
   },
   "watcher": {
     "enabled": true,
-    "debounceMs": 2000,
+    "debounceMs": 3000,
     "apply": true
   }
 }

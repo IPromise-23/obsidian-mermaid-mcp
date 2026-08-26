@@ -15,5 +15,5 @@
     "htmlLabels": false,
     "securityLevel": "strict"
   },
-  "watcher": { "enabled": false, "debounceMs": 2000, "apply": false }
+  "watcher": { "enabled": false, "debounceMs": 3000, "apply": false }
 }

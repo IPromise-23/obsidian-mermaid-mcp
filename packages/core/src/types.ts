@@ -147,6 +147,7 @@ export interface CoreConfig {
   browserIdleTimeoutMs: number;
   maxConcurrentRenders: number;
   htmlLabels: boolean;
+  watcherDebounceMs: number;
 }
 
 export const DEFAULT_CONFIG: CoreConfig = {
@@ -163,5 +164,6 @@ export const DEFAULT_CONFIG: CoreConfig = {
   renderTimeoutMs: 30_000,
   browserIdleTimeoutMs: 300_000,
   maxConcurrentRenders: 1,
-  htmlLabels: false
+  htmlLabels: false,
+  watcherDebounceMs: 3000
 };
