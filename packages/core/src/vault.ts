@@ -322,7 +322,29 @@ export class VaultService {
         const sidecar = normalizeSource(recovered.source);
         const sourceHash = sha256(sidecar);
         const knownHash = recovered.sourceHash ?? managed.marker.hash;
-        if (sourceHash === knownHash || sourceHash.startsWith(knownHash) || knownHash.startsWith(sourceHash)) {
+        const isLegacyComment = managed.raw.includes('<!--');
+        const hashMatches = sourceHash === knownHash || sourceHash.startsWith(knownHash) || knownHash.startsWith(sourceHash);
+        if (hashMatches) {
+          if (isLegacyComment) {
+            const newline = recovered.fence?.newline ?? '\n';
+            const prefix = managed.prefix;
+            const embed = this.config.embedWidth === null ? `![[${managed.marker.svg}]]` : `![[${managed.marker.svg}|${this.config.embedWidth}]]`;
+            const suffix = managed.raw.endsWith(newline) ? newline : '';
+            const replacement = `${prefix}${embed}${suffix}`;
+            replacements.push({ start: managed.start, end: managed.end, value: replacement });
+            plans.push({
+              id: managed.marker.id,
+              index: managed.index + 1,
+              svgPath: managed.marker.svg,
+              sourcePath: recovered.sourcePath ?? '',
+              sourceHash,
+              renderHash: '',
+              embed: replacement.trim(),
+              status: 'unchanged',
+              warnings: []
+            });
+            continue;
+          }
           plans.push({
             id: managed.marker.id,
             index: managed.index + 1,
