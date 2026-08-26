@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.obsidian-mermaid-watch</string>
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Replace with output of 'which node' (e.g. /opt/homebrew/bin/node or /usr/local/bin/node) -->
+        <string>/usr/local/bin/node</string>
+        <!-- Replace with absolute path to packages/watcher/dist/index.js -->
+        <string>/path/to/obsidian-mermaid-mcp/packages/watcher/dist/index.js</string>
+        <string>watch</string>
+        <string>--vault-root</string>
+        <!-- Replace with absolute path to your Obsidian vault -->
+        <string>/path/to/your/obsidian/vault</string>
+        <string>--apply</string>
+        <string>--debounce-ms</string>
+        <string>2000</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/path/to/obsidian-mermaid-mcp</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>NODE_ENV</key>
+        <string>production</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/obsidian-mermaid-watch.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/obsidian-mermaid-watch.err.log</string>
+</dict>
+</plist>

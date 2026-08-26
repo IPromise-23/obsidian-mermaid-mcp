@@ -1,0 +1,63 @@
+# Dependencies & package managers
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs & caches
+dist/
+packages/*/dist/
+coverage/
+*.tsbuildinfo
+packages/*/tsconfig.tsbuildinfo
+.mermaid-mcp-cache/
+fixture-vault/
+
+# Local configuration & environment
+config.local.json
+*.local.json
+*.local
+.env
+.env.*
+!.env.example
+
+# Local daemons & plist
+com.ipromise.*
+*.plist
+!examples/daemons/*.plist
+
+# Logs & temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.tmp
+*.tmp-*
+*.temp
+
+# OS & Editor files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Secrets & credentials
+*.pem
+*.key
+*.token
+*.cert
+*.crt
+credentials.json
+

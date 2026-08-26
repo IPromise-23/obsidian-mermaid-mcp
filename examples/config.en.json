@@ -1,0 +1,19 @@
+{
+  "configVersion": 1,
+  "assetRoot": "assets",
+  "attachmentPattern": "{asset_root}/{note_name}/mermaid-{index}-{hash}.svg",
+  "sourcePattern": "{asset_root}/{note_name}/mermaid-{index}-{hash}.mmd",
+  "embedWidth": 600,
+  "theme": "default",
+  "background": "transparent",
+  "sourceStorage": "both",
+  "failurePolicy": "partial",
+  "renderer": {
+    "timeoutMs": 30000,
+    "browserIdleTimeoutMs": 300000,
+    "maxConcurrentRenders": 1,
+    "htmlLabels": false,
+    "securityLevel": "strict"
+  },
+  "watcher": { "enabled": false, "debounceMs": 2000, "apply": false }
+}

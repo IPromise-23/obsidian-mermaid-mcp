@@ -1,0 +1,26 @@
+{
+  "name": "obsidian-mermaid-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local, safe Mermaid rendering and reversible Obsidian note sync over MCP.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "npm run build --workspace=@obsidian-mermaid-mcp/core && npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "lint": "node scripts/lint.mjs",
+    "smoke": "npm run build && node scripts/stdio-smoke.mjs",
+    "ci": "npm ci && npm run typecheck && npm test && npm run lint && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "vitest": "^3.2.4",
+    "typescript": "6.0.3"
+  }
+}

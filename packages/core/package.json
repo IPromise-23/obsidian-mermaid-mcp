@@ -1,0 +1,21 @@
+{
+  "name": "@obsidian-mermaid-mcp/core",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "11.16.0",
+    "@xmldom/xmldom": "0.9.12",
+    "puppeteer": "24.34.0"
+  }
+}

@@ -1,0 +1,18 @@
+[Unit]
+Description=Obsidian Mermaid MCP File Watcher
+After=network.target
+
+[Service]
+Type=simple
+# Replace with output of `which node` and repository path
+ExecStart=/usr/bin/node /path/to/obsidian-mermaid-mcp/packages/watcher/dist/index.js watch --vault-root /path/to/your/obsidian/vault --apply --debounce-ms 2000
+WorkingDirectory=/path/to/obsidian-mermaid-mcp
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
