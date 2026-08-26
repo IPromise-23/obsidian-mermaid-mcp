@@ -145,7 +145,7 @@ export class VaultService {
     const newline = block.newline;
     const prefix = block.prefix;
     const suffix = block.raw.endsWith(newline) ? newline : '';
-    return `${prefix}${managedMarkerLine(marker)}${newline}${prefix}${embed}${suffix}`;
+    return `${prefix}${embed}${suffix}`;
   }
 
   private async cachedRendered(svgPath: string, sourceHash: string, expectedRenderHash: string): Promise<RenderedSvg | undefined> {
@@ -173,20 +173,32 @@ export class VaultService {
     }
   }
 
-  private async readManagedSource(marker: ManagedMarker): Promise<{ source?: string; sourcePath?: string; error?: StructuredError }> {
-    if (marker.source) {
+  private async readManagedSource(marker: ManagedMarker): Promise<{ source?: string; sourcePath?: string; sourceHash?: string; error?: StructuredError; fence?: ManagedMarker['fence'] }> {
+    let sourcePath = marker.source;
+    let fence = marker.fence;
+    let sourceHash = marker.hash;
+    let meta: SvgMetadata | undefined;
+    try {
+      const svg = await readFile(await this.pathAbsolute(marker.svg), 'utf8');
+      meta = readMetadata(svg);
+      if (meta) {
+        if (!sourcePath && meta.sidecarPath) sourcePath = meta.sidecarPath;
+        if (!fence && meta.fence) fence = meta.fence;
+        if (meta.sourceHash) sourceHash = meta.sourceHash;
+      }
+    } catch {
+      // SVG read failed
+    }
+    if (sourcePath) {
       try {
-        return { source: normalizeSource(await readFile(await this.pathAbsolute(marker.source), 'utf8')), sourcePath: marker.source };
+        const sidecarText = await readFile(await this.pathAbsolute(sourcePath), 'utf8');
+        return { source: normalizeSource(sidecarText), sourcePath, sourceHash, fence };
       } catch {
         // Fall through to the self-contained SVG metadata.
       }
     }
-    try {
-      const svg = await readFile(await this.pathAbsolute(marker.svg), 'utf8');
-      const source = readMetadata(svg)?.source;
-      if (source !== undefined) return { source, sourcePath: marker.source };
-    } catch (error) {
-      return { sourcePath: marker.source, error: asStructuredError(error, 'SOURCE_NOT_FOUND') };
+    if (meta?.source !== undefined) {
+      return { source: meta.source, sourcePath, sourceHash: meta.sourceHash, fence };
     }
     return { sourcePath: marker.source, error: { code: 'SOURCE_NOT_FOUND', message: 'managed block has no readable sidecar or SVG metadata', path: marker.svg } };
   }
@@ -303,18 +315,31 @@ export class VaultService {
     // A managed block may have been edited on a mobile device through its
     // sidecar. Re-render that source and keep the managed marker reversible.
     for (const managed of scanned.managed) {
-      if (!managed.marker.source) continue;
       try {
         if (options.signal?.aborted) throw new CoreError('RENDER_CANCELLED', 'render was cancelled');
         const recovered = await this.readManagedSource(managed.marker);
-        if (!recovered.source) throw new CoreError('SOURCE_NOT_FOUND', 'managed block has no readable sidecar or SVG metadata');
+        if (!recovered.source) continue;
         const sidecar = normalizeSource(recovered.source);
         const sourceHash = sha256(sidecar);
-        if (sourceHash === managed.marker.hash) continue;
+        const knownHash = recovered.sourceHash ?? managed.marker.hash;
+        if (sourceHash === knownHash || sourceHash.startsWith(knownHash) || knownHash.startsWith(sourceHash)) {
+          plans.push({
+            id: managed.marker.id,
+            index: managed.index + 1,
+            svgPath: managed.marker.svg,
+            sourcePath: recovered.sourcePath ?? '',
+            sourceHash,
+            renderHash: '',
+            embed: managed.embed,
+            status: 'unchanged',
+            warnings: []
+          });
+          continue;
+        }
         const id = managed.marker.id;
         const provisional = this.assetPaths(note.relative, managed.index + 1, sourceHash, id);
         const rendered = await this.render(sidecar, renderOptions, options.signal);
-        const fence = managed.marker.fence ?? { char: '`' as const, length: 3, info: 'mermaid', prefix: managed.prefix, containerPrefix: managed.prefix, newline: '\n' as const };
+        const fence = recovered.fence ?? managed.marker.fence ?? { char: '`' as const, length: 3, info: 'mermaid', prefix: managed.prefix, containerPrefix: managed.prefix, newline: '\n' as const };
         const metadata: SvgMetadata = {
           version: 1, id, sourceHash, source: sidecar, sidecarPath: provisional.source,
           notePath: note.relative, fence, theme: resolvedRenderOptions.theme,
@@ -327,7 +352,7 @@ export class VaultService {
         const prefix = managed.prefix;
         const embed = this.config.embedWidth === null ? `![[${marker.svg}]]` : `![[${marker.svg}|${this.config.embedWidth}]]`;
         const suffix = managed.raw.endsWith(newline) ? newline : '';
-        const replacement = `${prefix}${managedMarkerLine(marker)}${newline}${prefix}${embed}${suffix}`;
+        const replacement = `${prefix}${embed}${suffix}`;
         replacements.push({ start: managed.start, end: managed.end, value: replacement });
         plans.push({ id, index: managed.index + 1, svgPath: provisional.svg, sourcePath: provisional.source, sourceHash, renderHash: rendered.renderHash, embed: replacement.trim(), status: 'new', warnings: rendered.warnings });
         artifacts.push({ svgPath: provisional.svg, sourcePath: provisional.source, svg, source: sidecar });
@@ -373,14 +398,15 @@ export class VaultService {
     return { operation: 'sync_note', notePath: note.relative, apply, changed: transformedContent !== content, conflict: false, blocks: plans, transformedContent, errors, warnings };
   }
 
-  private restoreFence(block: ManagedBlock, source: string): string {
-    const fence = block.marker.fence ?? { char: '`', length: 3, info: 'mermaid', prefix: block.prefix, containerPrefix: block.prefix, newline: '\n' as const };
-    const newline = fence.newline;
-    const prefix = fence.prefix || block.prefix;
-    const opener = `${prefix}${fence.char.repeat(Math.max(3, fence.length))}${fence.info ? fence.info : 'mermaid'}`;
-    const body = normalizeSource(source).split('\n').map((line) => `${prefix}${line}`).join(newline);
+  private restoreFence(block: ManagedBlock, source: string, fenceOverride?: ManagedMarker['fence']): string {
+    const fence = fenceOverride ?? block.marker.fence ?? { char: '`', length: 3, info: 'mermaid', prefix: block.prefix, containerPrefix: block.prefix, newline: '\n' as const };
+    const newline = fence.newline || '\n';
+    const prefix = fence.prefix || block.prefix || '';
+    const opener = `${prefix}${fence.char.repeat(Math.max(3, fence.length || 3))}${fence.info ? fence.info : 'mermaid'}`;
+    const trimmed = normalizeSource(source).replace(/\n+$/gu, '');
+    const body = trimmed.split('\n').map((line) => `${prefix}${line}`).join(newline);
     const suffix = fence.trailingNewline === false ? '' : newline;
-    return `${opener}${newline}${body}${newline}${prefix}${fence.char.repeat(Math.max(3, fence.length))}${suffix}`;
+    return `${opener}${newline}${body}${newline}${prefix}${fence.char.repeat(Math.max(3, fence.length || 3))}${suffix}`;
   }
 
   async restore(notePath: string, options: RestoreOptions = {}): Promise<RestoreResult> {
@@ -400,19 +426,10 @@ export class VaultService {
     for (const block of scanned.managed) {
       if (options.signal?.aborted) throw new CoreError('RENDER_CANCELLED', 'restore was cancelled');
       try {
-        let source: string | undefined;
-        let sourcePath: string | undefined;
-        if (block.marker.source) {
-          sourcePath = block.marker.source;
-          try { source = await readFile(await this.pathAbsolute(block.marker.source), 'utf8'); } catch { source = undefined; }
-        }
-        if (source === undefined) {
-          const svg = await readFile(await this.pathAbsolute(block.marker.svg), 'utf8');
-          source = readMetadata(svg)?.source;
-        }
-        if (source === undefined) throw new CoreError('SOURCE_NOT_FOUND', 'managed block has no readable sidecar or SVG metadata');
-        replacements.push({ start: block.start, end: block.end, value: this.restoreFence(block, source) });
-        restored.push({ id: block.marker.id, sourceHash: block.marker.hash, sourcePath, status: 'restored' });
+        const recovered = await this.readManagedSource(block.marker);
+        if (!recovered.source) throw new CoreError('SOURCE_NOT_FOUND', 'managed block has no readable sidecar or SVG metadata');
+        replacements.push({ start: block.start, end: block.end, value: this.restoreFence(block, recovered.source, recovered.fence) });
+        restored.push({ id: block.marker.id, sourceHash: block.marker.hash, sourcePath: recovered.sourcePath, status: 'restored' });
       } catch (error) {
         if (options.signal?.aborted) throw error;
         const structured = asStructuredError(error, 'SOURCE_NOT_FOUND');

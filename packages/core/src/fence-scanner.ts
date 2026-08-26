@@ -51,6 +51,25 @@ function parseMarker(line: string): { prefix: string; marker: ManagedMarker } | 
   }
 }
 
+function parseCleanEmbed(line: string): { prefix: string; marker: ManagedMarker; embed: string } | undefined {
+  const match = line.match(/^((?: {0,3}>[ \t]?)*(?: {0,3})?)!\[\[([^\]|]+?mermaid-\d+-([a-f0-9]{8,64})\.svg)(?:\|([^\]]+))?\]\]\s*$/u);
+  if (!match?.[2] || !match[3]) return undefined;
+  const prefix = match[1] ?? '';
+  const svgPath = match[2];
+  const hash = match[3];
+  const id = `mm-${hash.slice(0, 12)}`;
+  return {
+    prefix,
+    embed: `![[${match[2]}${match[4] !== undefined ? `|${match[4]}` : ''}]]`,
+    marker: {
+      version: 1,
+      id,
+      svg: svgPath,
+      hash
+    }
+  };
+}
+
 export interface ScanResult {
   fences: FenceBlock[];
   managed: ManagedBlock[];
@@ -161,7 +180,17 @@ export function scanMarkdown(content: string): ScanResult {
           raw: content.slice(line.start, next.end)
         });
         lineIndex += 1;
+        continue;
       }
+    }
+    const clean = parseCleanEmbed(line.text);
+    if (clean) {
+      managed.push({
+        kind: 'managed', index: index++, start: line.start, end: line.end,
+        startLine: lineIndex + 1, endLine: lineIndex + 1,
+        marker: clean.marker, embed: clean.embed, prefix: clean.prefix,
+        raw: content.slice(line.start, line.end)
+      });
     }
   }
   return { fences, managed };

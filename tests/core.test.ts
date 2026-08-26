@@ -59,7 +59,8 @@ describe('vault sync and restore', () => {
     const applied = await service.sync('测试笔记.md', { apply: true });
     expect(applied.changed).toBe(true);
     const converted = await readFile(notePath, 'utf8');
-    expect(converted).toContain('obsidian-mermaid-mcp:v1');
+    expect(converted).not.toContain('<!-- obsidian-mermaid-mcp:v1');
+    expect(converted).toContain('![[assets/测试笔记/mermaid-001-');
     expect(converted).toContain('|600]]');
     const second = await service.sync('测试笔记.md', { apply: true });
     expect(second.blocks.every((block) => block.status === 'cached' || block.status === 'unchanged')).toBe(true);
@@ -83,7 +84,7 @@ describe('vault sync and restore', () => {
     expect(await readFile(notePath, 'utf8')).toBe(original);
   });
 
-  it('round-trips a Mermaid fence with plain indentation', async () => {
+  it('round-trips a Mermaid fence with plain indentation without comments in markdown', async () => {
     const root = await mkdtemp(join(tmpdir(), 'omm-indented-'));
     await mkdir(join(root, 'assets'), { recursive: true });
     const notePath = join(root, 'note.md');
@@ -91,7 +92,9 @@ describe('vault sync and restore', () => {
     await writeFile(notePath, original);
     const service = new VaultService(root, {}, new DeterministicRenderer());
     await service.sync('note.md', { apply: true });
-    expect((await readFile(notePath, 'utf8')).split('\n')[0]).toMatch(/^  <!--/u);
+    const converted = await readFile(notePath, 'utf8');
+    expect(converted).not.toContain('<!--');
+    expect(converted.split('\n')[0]).toMatch(/^  !\[\[/u);
     await service.restore('note.md', { apply: true });
     expect(await readFile(notePath, 'utf8')).toBe(original);
   });
@@ -202,4 +205,63 @@ describe('vault sync and restore', () => {
     expect(await readFile(notePath, 'utf8')).toBe(original);
     await service.close();
   });
+
+  it('updates SVG when .mmd sidecar is modified under clean embed mode', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'omm-sidecar-clean-'));
+    await mkdir(join(root, 'assets'), { recursive: true });
+    const notePath = join(root, 'doc.md');
+    const original = '# Title\n\n```mermaid\nflowchart LR\n A-->B\n```\n';
+    await writeFile(notePath, original);
+
+    const service = new VaultService(root, {}, new DeterministicRenderer());
+    await service.initialize();
+
+    const firstSync = await service.sync('doc.md', { apply: true });
+    expect(firstSync.changed).toBe(true);
+    const sidecarPath = firstSync.blocks[0]!.sourcePath;
+
+    // Modify the .mmd sidecar directly (e.g. from mobile or another editor)
+    const newMermaid = 'flowchart LR\n A-->B\n B-->C\n';
+    await writeFile(join(root, sidecarPath), newMermaid);
+
+    // Sync note again
+    const secondSync = await service.sync('doc.md', { apply: true });
+    expect(secondSync.changed).toBe(true);
+    expect(secondSync.blocks[0]!.status).toBe('new');
+
+    const updatedNoteContent = await readFile(notePath, 'utf8');
+    expect(updatedNoteContent).not.toContain('<!--');
+    expect(updatedNoteContent).toContain('![[');
+
+    // Restore should recover the updated diagram
+    const restored = await service.restore('doc.md', { apply: true });
+    expect(restored.changed).toBe(true);
+    expect(await readFile(notePath, 'utf8')).toBe('# Title\n\n```mermaid\nflowchart LR\n A-->B\n B-->C\n```\n');
+    await service.close();
+  });
+
+  it('restores legacy notes that contain HTML comments back to clean fences', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'omm-legacy-compat-'));
+    await mkdir(join(root, 'assets', 'legacy'), { recursive: true });
+    const notePath = join(root, 'legacy.md');
+
+    // Create a note with legacy HTML comment
+    const svgPath = 'assets/legacy/mermaid-001-f97437d9e714d8ee.svg';
+    const mmdPath = 'assets/legacy/mermaid-001-f97437d9e714d8ee.mmd';
+    const legacyComment = '<!-- obsidian-mermaid-mcp:v1 {"version":1,"id":"mm-f97437d9e714","svg":"' + svgPath + '","source":"' + mmdPath + '","hash":"f97437d9e714d8ee","note":"legacy.md","fence":{"char":"`","length":3,"info":"mermaid","prefix":"","containerPrefix":"","newline":"\\n","trailingNewline":true}} -->';
+    const legacyContent = `# Legacy\n\n${legacyComment}\n![[${svgPath}|600]]\n`;
+    await writeFile(notePath, legacyContent);
+    await writeFile(join(root, mmdPath), 'flowchart TD\n X-->Y\n');
+
+    const service = new VaultService(root, {}, new DeterministicRenderer());
+    await service.initialize();
+
+    const restored = await service.restore('legacy.md', { apply: true });
+    expect(restored.changed).toBe(true);
+    const restoredContent = await readFile(notePath, 'utf8');
+    expect(restoredContent).not.toContain('<!--');
+    expect(restoredContent).toBe('# Legacy\n\n```mermaid\nflowchart TD\n X-->Y\n```\n');
+    await service.close();
+  });
 });
+

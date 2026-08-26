@@ -127,12 +127,11 @@ flowchart LR
 ```
 ````
 
-### 转换后 (嵌入 SVG + 备份 Sidecar)
+### 转换后 (纯净嵌入 SVG + 备份 Sidecar)
 ```markdown
 # 系统架构概览
 
-<!-- obsidian-mermaid-mcp:v1 {"id":"mm-a1b2c3","svg":"assets/系统架构概览/mermaid-001-f974.svg","source":"assets/系统架构概览/mermaid-001-f974.mmd","hash":"f974..."} -->
-![[assets/系统架构概览/mermaid-001-f974.svg|600]]
+![[assets/系统架构概览/mermaid-001-f97437d9e714d8ee.svg|600]]
 ```
 
 ### 生成的目录与文件

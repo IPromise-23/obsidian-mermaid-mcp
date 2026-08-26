@@ -127,12 +127,11 @@ flowchart LR
 ```
 ````
 
-### After Conversion (Embedded SVG + Sidecar)
+### After Conversion (Clean Embedded SVG + Sidecar)
 ```markdown
 # Architecture Overview
 
-<!-- obsidian-mermaid-mcp:v1 {"id":"mm-a1b2c3","svg":"assets/Architecture/mermaid-001-f974.svg","source":"assets/Architecture/mermaid-001-f974.mmd","hash":"f974..."} -->
-![[assets/Architecture/mermaid-001-f974.svg|600]]
+![[assets/Architecture/mermaid-001-f97437d9e714d8ee.svg|600]]
 ```
 
 ### Generated File Structure
