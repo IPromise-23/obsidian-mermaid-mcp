@@ -37,7 +37,7 @@
 - **Node.js**: `>= 20.0.0`
 - **Chrome / Chromium / Edge / Brave / Arc**: Installed in a standard location, or specify via `PUPPETEER_EXECUTABLE_PATH`.
 
-### Installation & Build
+### Installation & Build (Local Node.js)
 ```bash
 git clone https://github.com/IPromise-23/obsidian-mermaid-mcp.git
 cd obsidian-mermaid-mcp
@@ -45,6 +45,14 @@ npm ci
 npm run build
 npm test
 ```
+
+### Installation & Build (Docker Alternative)
+```bash
+git clone https://github.com/IPromise-23/obsidian-mermaid-mcp.git
+cd obsidian-mermaid-mcp
+docker build -t obsidian-mermaid-mcp:latest .
+```
+👉 **Detailed Docker Guide (MCP Server & Docker Compose)**: [`docs/docker-guide.md`](docs/docker-guide.md)
 
 ---
 

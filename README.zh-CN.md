@@ -37,7 +37,7 @@
 - **Node.js**: `>= 20.0.0`
 - **Chrome / Chromium / Edge / Brave / Arc**: 安装在系统默认路径即可，亦可通过 `PUPPETEER_EXECUTABLE_PATH` 手动指定。
 
-### 安装与构建
+### 安装与构建（本地 Node.js 方式）
 ```bash
 git clone https://github.com/IPromise-23/obsidian-mermaid-mcp.git
 cd obsidian-mermaid-mcp
@@ -45,6 +45,14 @@ npm ci
 npm run build
 npm test
 ```
+
+### 安装与构建（Docker 容器化方式，免装 Node/Chrome）
+```bash
+git clone https://github.com/IPromise-23/obsidian-mermaid-mcp.git
+cd obsidian-mermaid-mcp
+docker build -t obsidian-mermaid-mcp:latest .
+```
+👉 **详细 Docker 使用手册（MCP Server 与 Docker Compose 后台常驻）**：[`docs/docker-guide.md`](docs/docker-guide.md)
 
 ---
 

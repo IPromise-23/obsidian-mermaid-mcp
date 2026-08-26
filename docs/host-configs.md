@@ -193,3 +193,32 @@ In Zed `settings.json`:
   }
 }
 ```
+
+---
+
+## 10. Docker 容器化 MCP 配置 (Universal Docker Host Config)
+
+如果使用 Docker 运行 MCP Server，任何支持 stdio 的客户端均可配置为 `command: "docker"`：
+
+```json
+{
+  "mcpServers": {
+    "obsidian-mermaid": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "/absolute/path/to/your/vault:/vault",
+        "-e",
+        "OBSIDIAN_MERMAID_VAULT_ROOT=/vault",
+        "obsidian-mermaid-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+> **注意**：必须保留 `-i`，**绝对不能加 `-t`**（TTY 会污染 JSON-RPC 消息流）。详细说明请查阅 [`docs/docker-guide.md`](docker-guide.md)。
+
